@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<title>Whack A Mole!</title>
+		<link
+			href="https://fonts.googleapis.com/css?family=Amatic+SC:400,700"
+			rel="stylesheet"
+			type="text/css"
+		/>
+		<link rel="stylesheet" href="style.css" />
+	</head>
+	<body>
+		<h1>Whack-a-mole! <span class="score">0</span></h1>
+		<hr />
+		<div class="timer"><h3></h3></div>
+
+		<button onClick="startGame()">Start!</button>
+
+		<div class="game">
+			<div class="hole hole1">
+				<div class="mole"></div>
+			</div>
+			<div class="hole hole2">
+				<div class="mole"></div>
+			</div>
+			<div class="hole hole3">
+				<div class="mole"></div>
+			</div>
+			<div class="hole hole4">
+				<div class="mole"></div>
+			</div>
+			<div class="hole hole5">
+				<div class="mole"></div>
+			</div>
+			<div class="hole hole6">
+				<div class="mole"></div>
+			</div>
+		</div>
+
+		<audio class="suoni" src="./boom.wav"></audio>
+		<audio class="suoni" src="./clap.wav"></audio>
+		<audio class="suoni" src="./hihat.wav"></audio>
+		<audio class="suoni" src="./kick.wav"></audio>
+		<audio class="suoni" src="./openhat.wav"></audio>
+		<audio class="suoni" src="./ride.wav"></audio>
+		<audio class="suoni" src="./snare.wav"></audio>
+		<audio class="sigla" src="./sigla.mp3"></audio>
+		<script>
+			const holes = document.querySelectorAll('.hole');
+			const scoreBoard = document.querySelector('.score');
+			const moles = document.querySelectorAll('.mole');
+			const remainTimeTimer = document.querySelector('.timer');
+			const smackAudios = document.querySelectorAll('.suoni');
+			const sigla = document.querySelector('.sigla');
+			let lastAudio;
+			let lastHole;
+			let timeUp = false;
+			let Score = 0;
+			let timer = 10000;
+
+			function randomTime(min, max) {
+				return Math.round(Math.random() * (max - min) + min);
+			}
+
+			function randomAudio(smackAudios) {
+				const adx = Math.floor(Math.random() * smackAudios.length);
+				const smackAudio = smackAudios[adx];
+				if (smackAudio === lastAudio) {
+					return randomAudio(smackAudios);
+				}
+				lastAudio = smackAudio;
+				return smackAudio;
+			}
+			// la funzione crea la randomizzazione delle buche mathfloor arrotonda per difetto
+			function randomeHole(holes) {
+				const idx = Math.floor(Math.random() * holes.length);
+				const hole = holes[idx];
+				if (hole === lastHole) {
+					return randomeHole(holes);
+				}
+				lastHole = hole;
+				return hole;
+			}
+
+			function startGame() {
+				let remainTime = timer / 1000;
+				scoreBoard.textContent = 0;
+				timeUp = false;
+				score = 0;
+				remainTimeTimer.textContent = 'time' + remainTime + 'secondi';
+				sigla.currentTime = 0;
+				sigla.play();
+				peep();
+
+				// imposto il time out a 10secondi (ho il timer di 10 secondi )
+				setInterval(() => {
+					if (remainTime <= 0) {
+						sigla.pause();
+						return;
+					}
+					remainTime--;
+					let secondLabel = remainTime === 1 ? 'secondo' : 'secondi';
+					remainTimeTimer.textContent = 'time' + ' ' + remainTime + ' ' + secondLabel;
+				}, 1000);
+				setTimeout(() => (timeUp = true), timer);
+			}
+
+			function peep() {
+				const time = randomTime(200, 1000);
+				const hole = randomeHole(holes);
+
+				hole.classList.add('up');
+				setTimeout(() => {
+					hole.classList.remove('up');
+					if (!timeUp) peep();
+				}, time);
+			}
+			function bonk(e) {
+				if (!e.isTrusted) return; // questa condizione è per bloccare gli imbroglioni
+				const audio = randomAudio(smackAudios);
+				audio.currentTime = 0;
+				audio.play();
+				score++;
+				this.parentNode.classList.remove('up');
+				scoreBoard.textContent = score;
+			}
+			moles.forEach(mole => mole.addEventListener('click', bonk));
+		</script>
+	</body>
+</html>
